@@ -1,0 +1,28 @@
+{
+    "include": ["utils"],
+    "exclude": ["src"],
+    "compileOnSave": true,
+    "compilerOptions": {
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "esModuleInterop": true,
+      "target": "es5",
+      "noImplicitAny": true,
+      "declaration": true,
+      "sourceMap": true,
+      "preserveConstEnums": true,
+      "lib": ["es2015", "dom"],
+      "noUnusedLocals": true,
+      "noImplicitReturns": true,
+      "noImplicitThis": true,
+      "alwaysStrict": true,
+      "strictNullChecks": true,
+      "noUnusedParameters": false,
+      "pretty": true,
+      "allowUnreachableCode": false,
+      "experimentalDecorators": true,
+      "declarationDir": "./types",
+      "downlevelIteration": true
+    }
+  }
+  
