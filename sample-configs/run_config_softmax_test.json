@@ -1,0 +1,47 @@
+{
+    "benchmarkName": "onnx-softmax",
+    "frameworksToTest": ["ort-web"],
+    "backendsToTest": ["webgl"],
+    "warmupIteration": 2,
+    "runIteration": 10,
+    "inputConfig": {
+        "runPreprocessor": false,
+        "customPreprocessorScript": "",
+        "useSyntheticData": false,
+        "inputWidth": 5,
+        "inputHeight": 4,
+        "inputDepth": 3,
+        "inputNames": ["x"],
+        "customInputPaths": [
+            { "url": "data/model-onnx/test_softmax_axis_0/test_data_set_0/input_0.pb" }
+        ]
+    },
+    "outputConfig": {
+        "name": "y",
+        "value": [],
+        "dims": [],
+        "customOutputPath": "data/model-onnx/test_softmax_axis_0/test_data_set_0/output_0.pb"
+    },
+    "logLevel": "warning",
+    "debug": false,
+    "onnxModelConfig": {
+        "path" : "data/model-onnx/test_softmax_axis_0/model.onnx",
+        "webgl": {
+            "pack": true,
+            "textureCacheMode": "",
+            "matmulMaxBatchSize": "",
+            "contextId": ""
+        },
+        "wasm": {
+            "numThreads": "",
+            "initTimeout": ""
+        }
+    },
+    "tfjsModelConfig": {
+        "path" : "",
+        "webgl": {
+            "pack": true
+        },
+        "wasm": {}
+    }
+}
