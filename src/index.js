@@ -332,6 +332,11 @@ class TensorFlowBenchmark {
                   script.async = false;
                   script.defer = false;
                   script.src = `${SERVER_BASE_PATH}/${run_config.tfjsModelConfig.path}`;
+
+                  script.onload = function() {
+                    model = createModel(tf);
+                  };
+
                   // Resolve the promise once the script is loaded
                   // Catch any errors while loading the script
                   script.addEventListener('load', () => {
@@ -340,10 +345,7 @@ class TensorFlowBenchmark {
                   script.addEventListener('error', () => {
                     reject(new Error(`${SERVER_BASE_PATH}/${run_config.tfjsModelConfig.path} failed to load.`));
                   });
-                  
-                  script.onload = function() {
-                    this.model = createModel(tf);
-                  };
+
                   // Append the script to the DOM
                   const el = document.getElementsByTagName('script')[0]
                   el.parentNode.insertBefore(script, el)
