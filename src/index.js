@@ -399,11 +399,13 @@ class TensorFlowBenchmark {
     async runModel(data) {
         let preprocessedData;
         if(run_config.inputConfig.runPreprocessor) {
-            preprocessedData = this.preprocess(data.data, this.inputWidth, this.inputHeight, this.inputDepth);
+            preprocessedData = run_config.tfjsModelConfig.channel_first ? preprocessedData = this.preprocess(data.data, this.inputDepth, this.inputWidth, this.inputHeight)
+            : this.preprocess(data.data, this.inputWidth, this.inputHeight, this.inputDepth);
         }
         else {
             preprocessedData = data.data
         }
+        console.log("tfjs input: ", preprocessedData);
         const start = performance.now();
         if(!this.model && this.isScriptFile) {
             this.model = createModel(tf);
@@ -472,6 +474,7 @@ class OrtWebBenchmark {
         else {
             preprocessedData = data.data
         }
+        console.log("ort input: ", preprocessedData.dims);
         const start = performance.now();
         const outputName = output === undefined ? 'output' : output.name;
         const inputName = data.name;
