@@ -1,3 +1,8 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+
+'use strict';
+
 const webpack = require("webpack");
 const path = require('path');
 const fs = require('fs');
@@ -8,79 +13,43 @@ if (!fs.existsSync('dist')){
   fs.mkdirSync('dist');
 }
 
-if(!process.env.ORT_BASE) {
-  //TODO set ort-web base to the official release in node_modules
-  //process.env.ORT_BASE = './node_modules/onnxruntime-web';
-  throw new Error("ORT_BASE variable is not set!");
+if (fs.existsSync('./node_modules/onnxruntime-common')) {
+  fs.copyFileSync(path.resolve('./node_modules/onnxruntime-common/dist', 'ort-common.min.js'), path.resolve('./dist', 'ort-common.min.js'));
+} else {
+  fs.copyFileSync(path.resolve('./node_modules/onnxruntime-web/node_modules/onnxruntime-common/dist', 'ort-common.min.js'), path.resolve('./dist', 'ort-common.min.js'));
 }
-const ort_wasm_path = path.resolve(process.env.ORT_BASE, "./js/web/dist/ort-wasm.wasm");
-const ort_wasm_simd_path = path.resolve(process.env.ORT_BASE, "./js/web/dist/ort-wasm-simd.wasm");
-const ort_wasm_threaded_path = path.resolve(process.env.ORT_BASE, "./js/web/dist/ort-wasm-threaded.wasm");
-const ort_wasm_threaded_simd_path = path.resolve(process.env.ORT_BASE, "./js/web/dist/ort-wasm-simd-threaded.wasm");
+fs.copyFileSync(path.resolve('./node_modules/onnxruntime-web/dist', 'ort-web.min.js'), path.resolve('./dist', 'ort-web.min.js'));
+fs.copyFileSync(path.resolve('./node_modules/onnxruntime-web/dist', 'ort-wasm-threaded.js'), path.resolve('./dist', 'ort-wasm-threaded.js'));
+fs.copyFileSync(path.resolve('./node_modules/onnxruntime-web/dist', 'ort-wasm-threaded.worker.js'), path.resolve('./dist', 'ort-wasm-threaded.worker.js'));
+fs.copyFileSync(path.resolve('./node_modules/onnxruntime-web/dist', 'ort-wasm.wasm'), path.resolve('./dist', 'ort-wasm.wasm'));
+fs.copyFileSync(path.resolve('./node_modules/onnxruntime-web/dist', 'ort-wasm-simd.wasm'), path.resolve('./dist', 'ort-wasm-simd.wasm'));
+fs.copyFileSync(path.resolve('./node_modules/onnxruntime-web/dist', 'ort-wasm-threaded.wasm'), path.resolve('./dist', 'ort-wasm-threaded.wasm'));
+fs.copyFileSync(path.resolve('./node_modules/onnxruntime-web/dist', 'ort-wasm-simd-threaded.wasm'), path.resolve('./dist', 'ort-wasm-simd-threaded.wasm'));
 
-if (!fs.existsSync(ort_wasm_path)){
-  console.log(`${ort_wasm_path} does not exist. Build will continue without benchmarking support for wasm.`);
-}
-else {
-  fs.createReadStream(ort_wasm_path).pipe(fs.createWriteStream('dist/ort-wasm.wasm'));
-}
-
-if (!fs.existsSync(ort_wasm_simd_path)){
-  console.log(`${ort_wasm_simd_path} does not exist. Build will continue without benchmarking support for simd wasm.`);
-}
-else {
-  fs.createReadStream(ort_wasm_simd_path).pipe(fs.createWriteStream('dist/ort-wasm-simd.wasm'));
-}
-
-if (!fs.existsSync(ort_wasm_threaded_path)){
-  console.log(`${ort_wasm_threaded_path} does not exist. Build will continue without benchmarking support for threaded wasm.`);
-}
-else {
-  fs.createReadStream(ort_wasm_threaded_path).pipe(fs.createWriteStream('dist/ort-wasm-threaded.wasm'));
-}
-
-if (!fs.existsSync(ort_wasm_threaded_simd_path)){
-  console.log(`${ort_wasm_threaded_simd_path} does not exist. Build will continue without benchmarking support for threaded simd wasm.`);
-}
-else {
-  fs.createReadStream(ort_wasm_threaded_simd_path).pipe(fs.createWriteStream('dist/ort-wasm-simd-threaded.wasm'));
-}
-
-const tfjs_wasm_path = path.resolve(__dirname, './node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm.wasm');
-const tfjs_wasm_simd_path = path.resolve(__dirname, './node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-simd.wasm');
-const tfjs_wasm_threaded_simd_path = path.resolve(__dirname, './node_modules/@tensorflow/tfjs-backend-wasm/wasm-out/tfjs-backend-wasm-threaded-simd.wasm');
-
-if (!fs.existsSync(tfjs_wasm_path)){
-  console.log(`${tfjs_wasm_path} does not exist. Build will continue without benchmarking support for wasm.`);
-}
-else {
-  fs.createReadStream(tfjs_wasm_path).pipe(fs.createWriteStream('dist/tfjs-backend-wasm.wasm'));
-}
-if (!fs.existsSync(tfjs_wasm_simd_path)){
-  console.log(`${tfjs_wasm_simd_path} does not exist. Build will continue without benchmarking support for wasm.`);
-}
-else {
-  fs.createReadStream(tfjs_wasm_simd_path).pipe(fs.createWriteStream('dist/tfjs-backend-wasm-simd.wasm'));
-}
-if (!fs.existsSync(tfjs_wasm_threaded_simd_path)){
-  console.log(`${tfjs_wasm_threaded_simd_path} does not exist. Build will continue without benchmarking support for wasm.`);
-}
-else {
-  fs.createReadStream(tfjs_wasm_threaded_simd_path).pipe(fs.createWriteStream('dist/tfjs-backend-wasm-threaded-simd.wasm'));
-}
+fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs/dist', 'tf.min.js'), path.resolve('./dist', 'tf.min.js'));
+fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-wasm/dist', 'tf-backend-wasm.min.js'), path.resolve('./dist', 'tf-backend-wasm.min.js'));
+fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-wasm/dist', 'tfjs-backend-wasm.wasm'), path.resolve('./dist', 'tfjs-backend-wasm.wasm'));
+fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-wasm/dist', 'tfjs-backend-wasm-simd.wasm'), path.resolve('./dist', 'tfjs-backend-wasm-simd.wasm'));
+fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-wasm/dist', 'tfjs-backend-wasm-threaded-simd.wasm'), path.resolve('./dist', 'tfjs-backend-wasm-threaded-simd.wasm'));
 
 module.exports = (env, argv) => {
   const config = {
-    entry: [APP_DIR + "/index.js", APP_DIR + "/index_utils.js"],
+    entry: [APP_DIR + "/index.js"],
     output : {
       path : DIST_DIR,
       filename: "main.js"
     },
-    node: {fs: 'empty'},
-    resolve: {
-      extensions: ['.js', '.ts'],
+    node: {
+      fs: 'empty'
     },
-    plugins: [new webpack.WatchIgnorePlugin([/\.js$/, /\.d\.ts$/])],
+    resolve: {
+      extensions: ['.js', '.ts']
+    },
+    externals: {
+    },
+    plugins: [
+      new webpack.WatchIgnorePlugin([/\.js$/, /\.d\.ts$/])
+    ],
     module: {
       rules: [
         {
@@ -93,8 +62,10 @@ module.exports = (env, argv) => {
           ],
         },
         {
-          test: /\.tsx?$/, 
-          loader: 'ts-loader'}
+          test: /\.ts$/, 
+          exclude: /node_modules/,
+          loader: 'ts-loader'
+        }
       ],
     },  };
   if (argv.mode === 'production') {
@@ -102,7 +73,7 @@ module.exports = (env, argv) => {
     config.devtool = 'source-map';
   } else {
     config.mode = 'development';
-    config.devtool = 'eval-source-map';
+    config.devtool = 'inline-source-map';
   }
   return config;
 };

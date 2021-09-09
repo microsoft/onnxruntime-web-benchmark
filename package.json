@@ -4,13 +4,13 @@
     "description": "",
     "main": "./src/index.js",
     "scripts": {
-        "build": "webpack --config ./webpack.conf.js --mode production",
-        "build-debug": "webpack --config ./webpack.conf.js --mode development",
-        "benchmark": "karma start --browsers ChromeTest --single-run --run_config=$RUN_CONFIG",
-        "profile": "karma start --browsers ChromeTest --single-run --profile --run_config=$RUN_CONFIG > output.txt && tsc && node utils/gen-chrome-trace < output.txt",
-        "test-debug": "karma start --browsers ChromeDebug --run_config=$RUN_CONFIG",
-        "test-edge": "karma start --browsers Edge --single-run --run_config=$RUN_CONFIG",
-        "test-safari": "karma start --browsers Safari --single-run --run_config=$RUN_CONFIG"
+        "build": "tsc && webpack --config ./webpack.conf.js --mode production",
+        "build-debug": "tsc && webpack --config ./webpack.conf.js --mode development",
+        "benchmark": "cross-var karma start --browsers ChromeTest --single-run --run_config=$npm_config_run_config",
+        "profile": "cross-var karma start --browsers ChromeTest --single-run --profile --run_config=$npm_config_run_config > output.txt && tsc && node utils/gen-chrome-trace < output.txt",
+        "test-debug": "cross-var karma start --browsers ChromeDebug --run_config=$npm_config_run_config",
+        "test-edge": "cross-var karma start --browsers Edge --single-run --run_config=$npm_config_run_config",
+        "test-safari": "cross-var karma start --browsers Safari --single-run --run_config=$npm_config_run_config"
     },
     "keywords": [
         "benchmark"
@@ -18,9 +18,10 @@
     "author": "",
     "license": "ISC",
     "devDependencies": {
+        "@types/karma": "^6.3.1",
         "blueimp-load-image": "^2.19.0",
         "karma": "^6.3.2",
-        "karma-chrome-launcher": "^2.2.0",
+        "karma-chrome-launcher": "^3.1.0",
         "karma-edge-launcher": "^0.4.2",
         "karma-mocha": "^2.0.1",
         "karma-mocha-reporter": "^2.2.5",
@@ -28,18 +29,20 @@
         "karma-safari-launcher": "^1.0.0",
         "mocha": "^8.3.2",
         "requirejs": "^2.3.6",
-        "webpack": "^4.24.0",
-        "webpack-cli": "^3.1.2"
+        "ts-loader": "^8.2.0",
+        "webpack": "^4.46.0",
+        "webpack-cli": "^3.3.12"
     },
     "dependencies": {
         "@tensorflow/tfjs": "3.6.0",
         "@tensorflow/tfjs-backend-wasm": "3.6.0",
+        "cross-var": "^1.1.0",
         "fsevents": "2.3.2",
         "lodash": "^4.17.11",
         "ndarray": "^1.0.18",
         "ndarray-ops": "^1.2.2",
         "onnx-proto": "^4.0.4",
-        "onnxruntime-web": "file:../onnxruntime/js/web"
+        "onnxruntime-web": "^1.8.2-dev.20210831.0"
     },
     "optionalDependencies": {
         "fsevents": "2.3.2"
