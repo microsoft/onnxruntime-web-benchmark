@@ -42,7 +42,8 @@
         "ndarray": "^1.0.18",
         "ndarray-ops": "^1.2.2",
         "onnx-proto": "^4.0.4",
-        "onnxruntime-web": "^1.8.2-dev.20210831.0"
+        "onnxruntime-web": "^1.8.2-dev.20210831.0",
+        "typescript": "^4.4.2"
     },
     "optionalDependencies": {
         "fsevents": "2.3.2"
