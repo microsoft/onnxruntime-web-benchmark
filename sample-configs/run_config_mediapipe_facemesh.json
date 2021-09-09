@@ -22,6 +22,9 @@
     },
     "tfjs": {
         "path" : "data/model-tfjs/mediapipe-facemesh/model.json",
+        "shape": {
+            "input_1": [1, 192, 192, 3]
+        },
         "webgl": {
             "pack": true
         },

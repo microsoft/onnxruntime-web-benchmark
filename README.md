@@ -14,13 +14,23 @@ In the root directory, run `npm install` to install all required packages.
 To build the bundle, run `npm run build` in the root directory.
 
 ## Run
-To start benchmarking, run `npm run benchmark`. Users need to provide a runtime configuration file that contains all parameters. By default, it looks for `run_config.json` in the root folder. Some sample configuration files are provided under `/sample-configs`. To pass a custom config to the benchmarking run, run `npm run benchmark --run_config=path_to_config`.
-i.e. `npm run benchmark --run_config=./sample-configs/run_config_softmax_test.json`
+To start benchmarking, run `npm run benchmark`. Users need to provide a runtime configuration file that contains all parameters. By default, it looks for `run_config.json` in the root folder. Some sample configuration files are provided under `/sample-configs`. To pass a custom config, run `npm run benchmark --run_config=path_to_config`. In example,
+
+```code
+npm run benchmark --run_config=./sample-configs/run_config_softmax_test.json
+```
 
 Profiling data can be generated using `npm run profile` command. It will create a chrome-trace event file named trace.json in the root folder. This file can be loaded into `chrome://tracing` for visualization. Note that model files must exist under the `data/` directory in the root. The browser doesn't have access to local file system so files need to be uploaded to the local server when benchmark starts up. All content under `data/` will be served.
 
 ### Input formats
-This tool generates synthetic input data referring to a model input shape and a hint by 'config.ortweb.shape' or 'config.tfjs.shape' when a shape is dynamic.
+This tool automatically generates synthetic input data referring to a model input shape. If a shape is not a fixed dimension except batch size, a hint by 'config.ortweb.shape' or 'config.tfjs.shape' can be added into configuration as follows,
+
+```code
+    "ortweb": {
+        "shape": {
+            "images:0": [1, 224, 224, 3]
+        },
+```
 
 ### Input models
 #### Ort-web
