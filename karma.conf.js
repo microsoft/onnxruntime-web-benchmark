@@ -1,33 +1,18 @@
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT license.
+
+'use strict';
+
 // Karma configuration
 const path = require('path')
 const fs = require('fs');
-
-function getMachineIpAddress() {
-  var os = require('os');
-  var ifaces = os.networkInterfaces();
-
-  for (const ifname in ifaces) {
-    for (const iface of ifaces[ifname]) {
-      if ('IPv4' !== iface.family || iface.internal !== false) {
-        // skip over internal (i.e. 127.0.0.1) and non-ipv4 addresses
-        continue;
-      }
-
-      // returns the first available IP address
-      return iface.address;
-    }
-  }
-
-  // if no available IP address, fallback to "localhost".
-  return 'localhost';
-}
 
 module.exports = function(config) {
   let runConfigFile = config.run_config ? config.run_config : 'run_config.json';
   if (!fs.existsSync(runConfigFile) && !fs.existsSync(path.resolve(__dirname, runConfigFile))){
     runConfigFile = 'run_config.json';
     if(!fs.existsSync(path.resolve(__dirname, runConfigFile))) {
-      throw new Error("Couldn't find any configuration file. Please make sure that RUN_CONFIG is set in env variable or run_config.json exists in root.");
+      throw new Error("Couldn't find any configuration file. Set a configuration as '--run_config=<config file>'or put run_config.json in root.");
     }
   }
   
@@ -35,10 +20,15 @@ module.exports = function(config) {
     basePath: './',
     frameworks: ['mocha'],
     files: [
+      { pattern: 'dist/tf.min.js' },
+      { pattern: 'dist/tf-backend-wasm.min.js' },
+      { pattern: 'dist/ort-common.min.js' },
+      { pattern: 'dist/ort-web.min.js' },
       { pattern: 'dist/main.js' },
       { pattern: 'dist/ort-wasm.wasm', included: false},
       { pattern: 'dist/ort-wasm-simd.wasm', included: false},
       { pattern: 'dist/ort-wasm-threaded.wasm', included: false},
+      { pattern: 'dist/ort-wasm-threaded.worker.js', included: false},
       { pattern: 'dist/ort-wasm-simd-threaded.wasm', included: false},
       { pattern: 'dist/tfjs-backend-wasm-simd.wasm', included: false, nocache: true},
       { pattern: 'dist/tfjs-backend-wasm-threaded-simd.wasm', included: false, nocache: true},
@@ -51,10 +41,14 @@ module.exports = function(config) {
       '/ort-wasm-simd.wasm': '/base/dist/ort-wasm-simd.wasm',
       '/ort-wasm-threaded.wasm': '/base/dist/ort-wasm-threaded.wasm',
       '/ort-wasm-simd-threaded.wasm': '/base/dist/ort-wasm-simd-threaded.wasm',
+      '/ort-wasm-threaded.worker.js': '/base/dist/ort-wasm-threaded.worker.js',
       '/tfjs-backend-wasm-simd.wasm': '/base/dist/tfjs-backend-wasm-simd.wasm',
       '/tfjs-backend-wasm-threaded-simd.wasm': '/base/dist/tfjs-backend-wasm-threaded-simd.wasm',
       '/tfjs-backend-wasm.wasm': '/base/dist/tfjs-backend-wasm.wasm'
-	 },
+    },
+    mime: {
+      "text/x-typescript": ["ts"],
+    },
     exclude: [
     ],
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
@@ -68,20 +62,16 @@ module.exports = function(config) {
     browserDisconnectTolerance: 0,
     browserSocketTimeout: 60000,
     logLevel: config.LOG_VERBOSE,
-    hostname: getMachineIpAddress(),
     customLaunchers: {
-      ChromeTest: {base: 'Chrome', flags: ['--window-size=1,1',
-                                                            '--disable-renderer-backgrounding',
-                                                            '--disable-web-security',
-                                                            '--disable-site-isolation-trials']},
-      ChromeDebug: {debug: true, base: 'Chrome', flags: ['--remote-debugging-port=9333']}
+      ChromeTest: {base: 'Chrome', flags: ['--window-size=1,1', '--enable-features=SharedArrayBuffer']},
+      ChromeDebug: {debug: true, base: 'ChromeHeadless', flags: ['--remote-debugging-port=9333', '--enable-features=SharedArrayBuffer']}
     },
     client: {
       captureConsole: true,
       mocha: {expose: ['body'], timeout: 3000000},
       browser: config.browsers,
       printMatches: false,
-      // To use custom config, run 'RUN_CONFIG=config_file_name npm run benchmark'
+      // To use custom config, run 'npm run benchmark --run_config=config_file_name'
       runConfig: runConfigFile,
       profile: config.profile
     },
@@ -89,6 +79,6 @@ module.exports = function(config) {
     browserConsoleLogOptions: {level: "debug", format: "%b %T: %m", terminal: true},
     autoWatch: false,
     concurrency: Infinity,
-    singleRun: true,
-  })
+    singleRun: false
+  });
 }

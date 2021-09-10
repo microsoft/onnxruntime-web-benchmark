@@ -1,13 +1,13 @@
 {
-    "benchmarkName": "onnx-softmax",
-    "frameworksToTest": ["ort-web"],
+    "benchmarkName": "mediapipe facemesh",
+    "frameworksToTest": ["tensorflow.js", "ort-web"],
     "backendsToTest": ["wasm", "webgl"],
     "warmupIteration": 5,
     "runIteration": 25,
-    "logLevel": "warning",
+    "logLevel": "error",
     "debug": false,
     "ortweb": {
-        "path" : "data/model-onnx/test_softmax_axis_0/model.onnx",
+        "path" : "data/model-onnx/mediapipe-facemesh/model.onnx",
         "webgl": {
             "pack": true,
             "textureCacheMode": "",
@@ -21,7 +21,10 @@
         }
     },
     "tfjs": {
-        "path" : "",
+        "path" : "data/model-tfjs/mediapipe-facemesh/model.json",
+        "shape": {
+            "input_1": [1, 192, 192, 3]
+        },
         "webgl": {
             "pack": true
         },
