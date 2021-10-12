@@ -5,8 +5,11 @@
 
 import {Benchmark, BenchmarkBasePath} from './benchmark';
 import Long from 'long';
+import {flatbuffers} from 'flatbuffers';
 import {onnx} from 'onnx-proto';
+import {onnxruntime} from './ort-schema/ort-generated';
 import * as ort from 'onnxruntime-web';
+import ortFbs = onnxruntime.experimental.fbs;
 
 export class OrtWebBenchmark implements Benchmark {
   #modelPath: string;
@@ -23,13 +26,16 @@ export class OrtWebBenchmark implements Benchmark {
       ort.env.webgl.contextId = config.ortweb.webgl.contextId;
     }
     if (config.ortweb.wasm.numThreads !== undefined) {
-      ort.env.wasm.numThreads = config.ortweb.wasm.numThreads
+      ort.env.wasm.numThreads = config.ortweb.wasm.numThreads;
     }
     if (config.ortweb.wasm.simd !== undefined) {
-      ort.env.wasm.simd = config.ortweb.wasm.simd
+      ort.env.wasm.simd = config.ortweb.wasm.simd;
+    }
+    if (config.ortweb.wasm.proxy !== undefined) {
+      ort.env.wasm.proxy = config.ortweb.wasm.proxy;
     }
     if (config.ortweb.wasm.initTimeout !== undefined) {
-      ort.env.wasm.initTimeout = config.ortweb.wasm.initTimeout
+      ort.env.wasm.initTimeout = config.ortweb.wasm.initTimeout;
     }
 
     console.log(`ort-web Pack mode enabled: ${ort.env.webgl.pack}`);
@@ -102,6 +108,16 @@ const loadModel = async (uri: string): Promise<Metadata[]> => {
   const response = await fetch(uri);
   const arrayBuffer = await response.arrayBuffer();
   const buffer = new Uint8Array(arrayBuffer);
+  if (uri.endsWith('.onnx')) {
+    return loadOnnxModel(buffer);
+  } else if (uri.endsWith('.ort')) {
+    return loadOrtModel(buffer);
+  } else {
+    throw new Error('Unknown model: ' + uri);
+  }
+}
+
+const loadOnnxModel = async (buffer: Uint8Array): Promise<Metadata[]> => {
   const modelProto = onnx.ModelProto.decode(buffer);
   const graph = modelProto.graph!;
 
@@ -128,6 +144,50 @@ const loadModel = async (uri: string): Promise<Metadata[]> => {
       dataType: input.type!.tensorType!.elemType!,
       shape
     });
+  }
+ 
+  return metadata;
+}
+
+const loadOrtModel = async (buffer: Uint8Array): Promise<Metadata[]> => {
+  const fb = new flatbuffers.ByteBuffer(buffer);
+  const model = ortFbs.InferenceSession.getRootAsInferenceSession(fb).model()!;
+  const graph = model.graph()!;
+
+  const initializers = new Set<string>();
+  for (let i = 0; i < graph.initializersLength(); i++) {
+    const initializer = graph.initializers(i)!;
+    initializers.add(initializer.name()!);
+  }
+
+  const metadata: Metadata[] = [];
+  for (let i = 0; i < graph.inputsLength(); ++i) {
+    const inputName = graph.inputs(i);
+    if (initializers.has(inputName)) {
+      continue;
+    }
+
+    for (let j = 0; j < graph.nodeArgsLength(); ++j) {
+      if (graph.nodeArgs(j)?.name() === inputName) {
+        const value = graph.nodeArgs(j)!.type()!.value(new ortFbs.TensorTypeAndShape())!;
+
+        const shape = value.shape()!;
+        const dims: number[] = [];
+        for (let k = 0; k < shape.dimLength()!; k++) {
+          const dim = shape.dim(k)!.value()!.dimValue()!;
+          const value = Long.fromValue({low: dim.low, high: dim.high, unsigned: true}).toNumber();
+          dims.push(value);
+        }
+
+        metadata.push({
+          name: inputName,
+          dataType: value.elemType(),
+          shape: dims
+        });
+
+        break;
+      }
+    }
   }
  
   return metadata;

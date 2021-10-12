@@ -64,7 +64,7 @@ module.exports = function(config) {
     logLevel: config.LOG_VERBOSE,
     customLaunchers: {
       ChromeTest: {base: 'Chrome', flags: ['--window-size=1,1', '--enable-features=SharedArrayBuffer']},
-      ChromeDebug: {debug: true, base: 'ChromeHeadless', flags: ['--remote-debugging-port=9333', '--enable-features=SharedArrayBuffer']}
+      ChromeDebug: {debug: true, base: 'Chrome', flags: ['--remote-debugging-port=9333', '--enable-features=SharedArrayBuffer']}
     },
     client: {
       captureConsole: true,
@@ -76,9 +76,6 @@ module.exports = function(config) {
       profile: config.profile
     },
     browsers: ['ChromeTest', 'ChromeDebug', 'Edge', 'Safari'],
-    browserConsoleLogOptions: {level: "debug", format: "%b %T: %m", terminal: true},
-    autoWatch: false,
-    concurrency: Infinity,
-    singleRun: false
+    browserConsoleLogOptions: {level: "debug", format: "%b %T: %m", terminal: true}
   });
 }
