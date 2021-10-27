@@ -4,7 +4,7 @@
 'use strict';
 
 import * as tf from '@tensorflow/tfjs';
-import '@tensorflow/tfjs-backend-wasm';
+import {setThreadsCount} from '@tensorflow/tfjs-backend-wasm';
 import {Benchmark, BenchmarkBasePath} from './benchmark';
 
 type TensorflowModelType = tf.GraphModel|tf.LayersModel;
@@ -32,8 +32,12 @@ export class TensorFlowBenchmark implements Benchmark {
     console.log(`Tfjs pack mode enabled: ${tf.env().getBool('WEBGL_PACK')}`);
 
     console.log(`Setting the backend to ${backend}`);
-    if (config.tfjs.wasm.threading !== undefined) {
-        tf.env().set('WASM_HAS_MULTITHREAD_SUPPORT', config.tfjs.wasm.threading);
+    if (config.tfjs.wasm.threading !== undefined ||
+        (config.tfjs.wasm.numThreads !== undefined && config.tfjs.wasm.numThreads !== 1)) {
+        tf.env().set('WASM_HAS_MULTITHREAD_SUPPORT', config.tfjs.wasm.threading !== undefined ? config.tfjs.wasm.threading : true);
+        if (config.tfjs.wasm.numThreads !== undefined && config.tfjs.wasm.numThreads > 1) {
+            setThreadsCount(config.tfjs.wasm.numThreads);
+        }
     }
     if (config.tfjs.wasm.simd !== undefined) {
         tf.env().set('WASM_HAS_SIMD_SUPPORT', config.tfjs.wasm.simd);
