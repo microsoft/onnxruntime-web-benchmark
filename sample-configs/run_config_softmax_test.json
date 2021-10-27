@@ -26,7 +26,7 @@
             "pack": true
         },
         "wasm": {
-            "threading": true,
+            "numThreads": 0,
             "simd": true
         }
     }
