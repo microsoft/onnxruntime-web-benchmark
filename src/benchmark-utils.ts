@@ -9,7 +9,23 @@ import {TensorFlowBenchmark} from './tfjs-benchmark';
 export interface BenchmarkResult {
   framework: string;
   backend: string;
-  duration: number;
+  actualBackend :string;
+  avg: number; 
+  pt50: number; 
+  pt95: number; 
+  pt99: number; 
+  min: number; 
+  max: number; 
+  webglPack : string;
+  wasmThreads : string;
+  wasmSimd :string;
+}
+
+export class EnvironmentFlags{
+  webglPack : string;
+  wasmThreads : string;
+  wasmSimd :string;
+  actualBackend :string;
 }
 
 export const readTextFile = async (file: string): Promise<string> => {
@@ -42,6 +58,7 @@ export const runBenchmark = async (config: any, framework: string, backend: stri
 
   const benchmark = createBenchmark(framework);
   await benchmark.init(config, backend, profile);
+  const environmentFlags = await benchmark.getEnvironmentFlags();
   const durations = [];
 
   console.log(`Running ${config.runIteration} iterations.`);
@@ -67,14 +84,39 @@ export const runBenchmark = async (config: any, framework: string, backend: stri
     benchmark.endProfiling();
   }
 
-  durations.shift();
+  durations.shift(); 
   const sum = durations.reduce((a, b) => a + b);
   const avg = sum / durations.length;
+  const min = Math.min(...durations);
+  const max = Math.max(...durations);
+  const pt50 = calculatePercentile(50, durations);
+  const pt95 = calculatePercentile(95, durations);
+  const pt99 = calculatePercentile(99, durations);
   console.log(`avg duration: ${avg}`);
+  console.log(`min duration: ${min}`);
+  console.log(`max duration: ${max}`);
+  console.log(`pt50 duration: ${pt50}`);
+  console.log(`pt95 duration: ${pt95}`);
+  console.log(`pt99 duration: ${pt99}`);
 
-  return {
+  return{
     framework: framework,
     backend: backend,
-    duration: avg
+    actualBackend : environmentFlags.actualBackend,
+    avg: avg,
+    pt50: pt50,
+    pt95: pt95,
+    pt99: pt99,
+    min: min,
+    max: max,
+    webglPack : environmentFlags.webglPack,
+    wasmThreads : environmentFlags.wasmThreads,
+    wasmSimd : environmentFlags.wasmSimd
   };
+}
+
+const calculatePercentile = (percentile: number, numbers: number[]) => {
+  numbers.sort(function(a, b){return a - b}); // increasing. 
+  var pos = Math.ceil(percentile / 100.0 * numbers.length) - 1;
+  return numbers[pos];
 }

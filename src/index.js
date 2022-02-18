@@ -37,6 +37,6 @@ describe('Benchmark', ()=> {
     });
 
     after('printing results', ()=> {
-        console.log(JSON.stringify(results));
+        console.log(`Benchmark Results:${JSON.stringify(results)}`);
     });
 });

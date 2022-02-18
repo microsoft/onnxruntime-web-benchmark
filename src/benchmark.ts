@@ -4,6 +4,7 @@
 'use strict';
 
 import * as ort from 'onnxruntime-web';
+import { EnvironmentFlags } from './benchmark-utils';
 
 export const BenchmarkBasePath = '/base';
 
@@ -11,4 +12,5 @@ export interface Benchmark {
   init(config: any, backend: string, profile: boolean): Promise<void>;
   run(): Promise<any[]|Uint8Array|Float32Array|Int32Array|ort.InferenceSession.OnnxValueMapType>;
   endProfiling(): void;
+  getEnvironmentFlags():Promise<EnvironmentFlags>;
 }

@@ -6,6 +6,7 @@
 import * as tf from '@tensorflow/tfjs';
 import {setThreadsCount} from '@tensorflow/tfjs-backend-wasm';
 import {Benchmark, BenchmarkBasePath} from './benchmark';
+import { EnvironmentFlags } from './benchmark-utils';
 
 type TensorflowModelType = tf.GraphModel|tf.LayersModel;
 type TensorflowIOType = tf.Tensor<tf.Rank>|tf.Tensor<tf.Rank>[];
@@ -15,6 +16,7 @@ export class TensorFlowBenchmark implements Benchmark {
   #model: TensorflowModelType;
   #input: TensorflowIOType;
   #execType: TensorflowExecType;
+  #environmentFlags: EnvironmentFlags;
 
   async init(config: any, backend: string, profile: boolean): Promise<void> {
     let modelPath = isHttpUrl(config.tfjs.path) ? config.tfjs.path : `${BenchmarkBasePath}/${config.tfjs.path}`;
@@ -26,7 +28,7 @@ export class TensorFlowBenchmark implements Benchmark {
     catch (e) {
       // then try loading as graph model
       this.#model = await tf.loadGraphModel(modelPath);
-    }
+    }    
 
     tf.env().set('WEBGL_PACK', !!config.tfjs.webgl.pack);
     console.log(`Tfjs pack mode enabled: ${tf.env().getBool('WEBGL_PACK')}`);
@@ -45,6 +47,12 @@ export class TensorFlowBenchmark implements Benchmark {
     await tf.setBackend(backend);
     await tf.ready().then(() => {
       console.log('Set the backend to' + JSON.stringify(tf.getBackend()));
+
+      this.#environmentFlags = new EnvironmentFlags();
+      this.#environmentFlags.webglPack = String(tf.env().getBool('WEBGL_PACK'));
+      this.#environmentFlags.wasmThreads = String(Boolean(tf.env().getAsync('WASM_HAS_MULTITHREAD_SUPPORT')));
+      this.#environmentFlags.wasmSimd = String(Boolean(tf.env().getAsync('WASM_HAS_SIMD_SUPPORT')));
+      this.#environmentFlags.actualBackend = String(tf.getBackend());
     });
 
     this.#input = generateInputs(this.#model, config.tfjs.shape);
@@ -66,6 +74,10 @@ export class TensorFlowBenchmark implements Benchmark {
   }
 
   endProfiling() {}
+
+  async getEnvironmentFlags(): Promise<EnvironmentFlags> {
+    return this.#environmentFlags;     
+  }
 }
 
 type ShapeConfig = {[name: string]: number[]};

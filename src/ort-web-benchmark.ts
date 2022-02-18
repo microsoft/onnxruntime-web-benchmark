@@ -10,14 +10,16 @@ import {onnx} from 'onnx-proto';
 import {onnxruntime} from './ort-schema/ort-generated';
 import * as ort from 'onnxruntime-web';
 import ortFbs = onnxruntime.experimental.fbs;
+import { EnvironmentFlags } from './benchmark-utils';
 
 export class OrtWebBenchmark implements Benchmark {
   #modelPath: string;
   #session: ort.InferenceSession;
   #input: ort.SessionHandler.FeedsType;
+  #environmentFlags: EnvironmentFlags;
 
   async init(config: any, backend: string, profile: boolean): Promise<void> {
-    ort.env.logLevel = profile ? 'verbose' : config.logLevel;
+    ort.env.logLevel = profile ? 'verbose' : config.logLevel;    
 
     if (config.ortweb.webgl.pack !== undefined) {
       ort.env.webgl.pack = config.ortweb.webgl.pack;
@@ -47,6 +49,12 @@ export class OrtWebBenchmark implements Benchmark {
                                                         enableProfiling: profile
                                                       });
     console.log(`Session initialized with: ${backend} backend(s).`);
+    
+    this.#environmentFlags = new EnvironmentFlags();
+    this.#environmentFlags.webglPack = String(ort.env.webgl.pack)
+    this.#environmentFlags.wasmThreads = String(ort.env.wasm.numThreads);
+    this.#environmentFlags.wasmSimd = String(ort.env.wasm.simd);
+    this.#environmentFlags.actualBackend = backend; // ONNXRuntime-Web will not change backend by itself.
 
     if (profile) {
       this.#session.startProfiling();
@@ -64,6 +72,10 @@ export class OrtWebBenchmark implements Benchmark {
 
   endProfiling() {
     this.#session.endProfiling();
+  }
+
+  async getEnvironmentFlags(): Promise<EnvironmentFlags> {
+    return this.#environmentFlags;     
   }
 }
 
