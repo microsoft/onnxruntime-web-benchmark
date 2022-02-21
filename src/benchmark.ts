@@ -4,7 +4,7 @@
 'use strict';
 
 import * as ort from 'onnxruntime-web';
-import { EnvironmentFlags } from './benchmark-utils';
+import {EnvironmentFlags} from './benchmark-utils';
 
 export const BenchmarkBasePath = '/base';
 
