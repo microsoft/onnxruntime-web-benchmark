@@ -12,5 +12,5 @@ export interface Benchmark {
   init(config: any, backend: string, profile: boolean): Promise<void>;
   run(): Promise<any[]|Uint8Array|Float32Array|Int32Array|ort.InferenceSession.OnnxValueMapType>;
   endProfiling(): void;
-  getEnvironmentFlags():Promise<EnvironmentFlags>;
+  getEnvironmentFlags(): Promise<EnvironmentFlags>;
 }

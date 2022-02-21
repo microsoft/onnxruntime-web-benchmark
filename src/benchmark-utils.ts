@@ -9,23 +9,23 @@ import {TensorFlowBenchmark} from './tfjs-benchmark';
 export interface BenchmarkResult {
   framework: string;
   backend: string;
-  actualBackend :string;
+  actualBackend: string;
   avg: number; 
   p50: number; 
   p95: number; 
   p99: number; 
   min: number; 
   max: number; 
-  webglPack : boolean;
-  wasmThreads : boolean|number;
-  wasmSimd : boolean;
+  webglPack: boolean;
+  wasmThreads: boolean|number;
+  wasmSimd: boolean;
 }
 
 export class EnvironmentFlags{
-  webglPack : boolean;
-  wasmThreads : boolean|number;
-  wasmSimd : boolean;
-  actualBackend : string;
+  webglPack: boolean;
+  wasmThreads: boolean|number;
+  wasmSimd: boolean;
+  actualBackend: string;
 }
 
 export const readTextFile = async (file: string): Promise<string> => {
@@ -102,16 +102,16 @@ export const runBenchmark = async (config: any, framework: string, backend: stri
   return {
     framework: framework,
     backend: backend,
-    actualBackend : environmentFlags.actualBackend,
+    actualBackend: environmentFlags.actualBackend,
     avg: avg,
     p50: p50,
     p95: p95,
     p99: p99,
     min: min,
     max: max,
-    webglPack : environmentFlags.webglPack,
-    wasmThreads : environmentFlags.wasmThreads,
-    wasmSimd : environmentFlags.wasmSimd
+    webglPack: environmentFlags.webglPack,
+    wasmThreads: environmentFlags.wasmThreads,
+    wasmSimd: environmentFlags.wasmSimd
   };
 }
 
