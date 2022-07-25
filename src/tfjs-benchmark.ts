@@ -5,6 +5,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import {setThreadsCount} from '@tensorflow/tfjs-backend-wasm';
+import '@tensorflow/tfjs-backend-webgpu';
 import {Benchmark, BenchmarkBasePath} from './benchmark';
 import {EnvironmentFlags} from './benchmark-utils';
 
