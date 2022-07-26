@@ -8,29 +8,30 @@ const path = require('path')
 const fs = require('fs');
 
 module.exports = function(config) {
-  let runWebGpu = false;
   let runConfigFile = config.run_config ? config.run_config : 'run_config.json';
   if (!fs.existsSync(runConfigFile) && !fs.existsSync(path.resolve(__dirname, runConfigFile))){
     runConfigFile = 'run_config.json';
     if(!fs.existsSync(path.resolve(__dirname, runConfigFile))) {
       throw new Error("Couldn't find any configuration file. Set a configuration as '--run_config=<config file>'or put run_config.json in root.");
     }
-    const configFileObj = require(path.resolve(__dirname, runConfigFile));
-    runWebGpu = configFileObj && Array.isArray(configFileObj.backendsToTest) && configFileObj.backendsToTest.indexOf('webgpu') > -1;
   }
+
+  const configFileObj = require(path.resolve(__dirname, runConfigFile));
+  const runWebGpu = configFileObj && Array.isArray(configFileObj.backendsToTest) && configFileObj.backendsToTest.indexOf('webgpu') > -1;
 
   const chromeBrowserNameBase = runWebGpu ? 'ChromeCanary' : 'Chrome';
   const chromeBrowserTestFlags = ['--window-size=1,1', '--enable-features=SharedArrayBuffer'];
   if (runWebGpu) { chromeBrowserTestFlags.push('--enable-unsafe-webgpu') }
   const chromeBrowserDebugFlags = ['--remote-debugging-port=9333', '--enable-features=SharedArrayBuffer'];
   if (runWebGpu) { chromeBrowserDebugFlags.push('--enable-unsafe-webgpu') }
-  
+
   config.set({
     basePath: './',
     frameworks: ['mocha'],
     files: [
       { pattern: 'dist/tf.min.js' },
       { pattern: 'dist/tf-backend-wasm.min.js' },
+      { pattern: 'dist/tf-backend-webgpu.min.js' },
       { pattern: 'dist/ort-common.min.js' },
       { pattern: 'dist/ort-web.min.js' },
       { pattern: 'dist/main.js' },
