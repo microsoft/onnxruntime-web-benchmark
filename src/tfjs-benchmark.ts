@@ -5,6 +5,7 @@
 
 import * as tf from '@tensorflow/tfjs';
 import {setThreadsCount} from '@tensorflow/tfjs-backend-wasm';
+import '@tensorflow/tfjs-backend-webgpu';
 import {Benchmark, BenchmarkBasePath} from './benchmark';
 import {EnvironmentFlags} from './benchmark-utils';
 
@@ -18,8 +19,29 @@ export class TensorFlowBenchmark implements Benchmark {
   #execType: TensorflowExecType;
   #environmentFlags: EnvironmentFlags;
 
+  #useAsyncRead: boolean;
+
   async init(config: any, backend: string, profile: boolean): Promise<void> {
-    let modelPath = isHttpUrl(config.tfjs.path) ? config.tfjs.path : `${BenchmarkBasePath}/${config.tfjs.path}`;
+    tf.env().set('WEBGL_PACK', !!config.tfjs.webgl.pack);
+    console.log(`Tfjs pack mode enabled: ${tf.env().getBool('WEBGL_PACK')}`);
+
+    console.log(`Setting the backend to ${backend}`);
+    if (config.tfjs.wasm.threading !== undefined ||
+      (config.tfjs.wasm.numThreads !== undefined && config.tfjs.wasm.numThreads !== 1)) {
+      tf.env().set('WASM_HAS_MULTITHREAD_SUPPORT', config.tfjs.wasm.threading !== undefined ? config.tfjs.wasm.threading : true);
+      if (config.tfjs.wasm.numThreads !== undefined && config.tfjs.wasm.numThreads > 1) {
+        setThreadsCount(config.tfjs.wasm.numThreads);
+      }
+    }
+    if (config.tfjs.wasm.simd !== undefined) {
+      tf.env().set('WASM_HAS_SIMD_SUPPORT', config.tfjs.wasm.simd);
+    }
+    await tf.setBackend(backend);
+    this.#useAsyncRead = backend === 'webgpu' ? true : false;
+    await tf.ready();
+    console.log('Set the backend to' + JSON.stringify(tf.getBackend()));
+
+    const modelPath = isHttpUrl(config.tfjs.path) ? config.tfjs.path : `${BenchmarkBasePath}/${config.tfjs.path}`;
 
     // first try to load it as layers model
     try {
@@ -30,30 +52,11 @@ export class TensorFlowBenchmark implements Benchmark {
       this.#model = await tf.loadGraphModel(modelPath);
     }
 
-    tf.env().set('WEBGL_PACK', !!config.tfjs.webgl.pack);
-    console.log(`Tfjs pack mode enabled: ${tf.env().getBool('WEBGL_PACK')}`);
-
-    console.log(`Setting the backend to ${backend}`);
-    if (config.tfjs.wasm.threading !== undefined ||
-        (config.tfjs.wasm.numThreads !== undefined && config.tfjs.wasm.numThreads !== 1)) {
-        tf.env().set('WASM_HAS_MULTITHREAD_SUPPORT', config.tfjs.wasm.threading !== undefined ? config.tfjs.wasm.threading : true);
-        if (config.tfjs.wasm.numThreads !== undefined && config.tfjs.wasm.numThreads > 1) {
-            setThreadsCount(config.tfjs.wasm.numThreads);
-        }
-    }
-    if (config.tfjs.wasm.simd !== undefined) {
-        tf.env().set('WASM_HAS_SIMD_SUPPORT', config.tfjs.wasm.simd);
-    }
-    await tf.setBackend(backend);
-    await tf.ready().then(() => {
-      console.log('Set the backend to' + JSON.stringify(tf.getBackend()));
-
-      this.#environmentFlags = new EnvironmentFlags();
-      this.#environmentFlags.webglPack = Boolean(tf.env().getBool('WEBGL_PACK'));
-      this.#environmentFlags.wasmThreads = Boolean(tf.env().getAsync('WASM_HAS_MULTITHREAD_SUPPORT'));
-      this.#environmentFlags.wasmSimd = Boolean(tf.env().getAsync('WASM_HAS_SIMD_SUPPORT'));
-      this.#environmentFlags.actualBackend = String(tf.getBackend());
-    });
+    this.#environmentFlags = new EnvironmentFlags();
+    this.#environmentFlags.webglPack = Boolean(tf.env().getBool('WEBGL_PACK'));
+    this.#environmentFlags.wasmThreads = Boolean(tf.env().getAsync('WASM_HAS_MULTITHREAD_SUPPORT'));
+    this.#environmentFlags.wasmSimd = Boolean(tf.env().getAsync('WASM_HAS_SIMD_SUPPORT'));
+    this.#environmentFlags.actualBackend = String(tf.getBackend());
 
     this.#input = generateInputs(this.#model, config.tfjs.shape);
     this.#execType = await getExecType(this.#model, this.#input);
@@ -63,12 +66,20 @@ export class TensorFlowBenchmark implements Benchmark {
     const output = await run(this.#model, this.#input, this.#execType);
     let outputData;
     if (!Array.isArray(output)) {
+      if (this.#useAsyncRead) {
+        outputData = await output.data();
+      } else {
         outputData = output.dataSync();
+      }
     } else {
-        outputData = new Array(output.length);
-        output.forEach(o => {
-            outputData.push(o.dataSync());
-        })
+      outputData = new Array(output.length);
+      for (const o of output) {
+        if (this.#useAsyncRead) {
+          outputData.push(await o.data());
+        } else {
+          outputData.push(o.dataSync());
+        }
+      }
     }
     return outputData;
   }
@@ -76,7 +87,7 @@ export class TensorFlowBenchmark implements Benchmark {
   endProfiling() {}
 
   async getEnvironmentFlags(): Promise<EnvironmentFlags> {
-    return this.#environmentFlags;     
+    return this.#environmentFlags;
   }
 }
 
@@ -96,8 +107,8 @@ const getExecType = async(model: TensorflowModelType, input: TensorflowIOType): 
     return 'predict';
   } else {
     throw new Error(
-        'Predict function was not found. Please provide a tf.GraphModel or ' +
-        'tf.LayersModel');
+      'Predict function was not found. Please provide a tf.GraphModel or ' +
+      'tf.LayersModel');
   }
 }
 

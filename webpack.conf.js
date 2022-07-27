@@ -31,6 +31,7 @@ fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-wasm/dist'
 fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-wasm/dist', 'tfjs-backend-wasm.wasm'), path.resolve('./dist', 'tfjs-backend-wasm.wasm'));
 fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-wasm/dist', 'tfjs-backend-wasm-simd.wasm'), path.resolve('./dist', 'tfjs-backend-wasm-simd.wasm'));
 fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-wasm/dist', 'tfjs-backend-wasm-threaded-simd.wasm'), path.resolve('./dist', 'tfjs-backend-wasm-threaded-simd.wasm'));
+fs.copyFileSync(path.resolve('./node_modules/@tensorflow/tfjs-backend-webgpu/dist', 'tf-backend-webgpu.min.js'), path.resolve('./dist', 'tf-backend-webgpu.min.js'));
 
 module.exports = (env, argv) => {
   const config = {
@@ -39,16 +40,16 @@ module.exports = (env, argv) => {
       path : DIST_DIR,
       filename: "main.js"
     },
-    node: {
-      fs: 'empty'
-    },
     resolve: {
-      extensions: ['.js', '.ts']
+      extensions: ['.js', '.ts'],
+      fallback: {
+        fs: false
+      }
     },
     externals: {
     },
     plugins: [
-      new webpack.WatchIgnorePlugin([/\.js$/, /\.d\.ts$/])
+      new webpack.WatchIgnorePlugin({ paths: [/\.js$/, /\.d\.ts$/]})
     ],
     module: {
       rules: [
