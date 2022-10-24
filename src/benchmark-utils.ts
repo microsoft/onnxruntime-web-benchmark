@@ -61,23 +61,34 @@ export const runBenchmark = async (config: any, framework: string, backend: stri
   const environmentFlags = await benchmark.getEnvironmentFlags();
   const durations = [];
 
-  console.log(`Running ${config.runIteration} iterations.`);
-
   if (config.warmupIteration && config.warmupIteration > 0) {
     console.log("Running warmup...");
     for(let i = 0 ; i < config.warmupIteration; i++) {
       await benchmark.run();
     }
-
     console.log("Warmup done");
   }
 
+  let end_time = 0;
+  if (config.min_queries > 0 && config.min_duration > 0) {
+    // mlperf style min_queries and min_duration number of iterations
+    config.runIteration = Number.MAX_VALUE;
+    if (config.min_duration > 0) {
+      end_time = performance.now() + config.min_duration * 1000;
+      console.log(`Running for at least ${config.min_queries} iterations and ${config.min_duration} seconds.`);
+    }
+  } else {
+    console.log(`Running ${config.runIteration} iterations.`);
+  }
+
+  
   for (let i = 0 ; i < config.runIteration; i++) {
     const start = performance.now();
     await benchmark.run();
-    const duration = performance.now() - start;
-    console.log(`Duration: ${duration}ms`);
-    durations.push(duration);
+    const now = performance.now();
+    durations.push(now - start);
+    if (now > end_time && i > config.min_queries)
+      break;
   }
 
   if (profile) {
