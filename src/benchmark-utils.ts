@@ -73,10 +73,8 @@ export const runBenchmark = async (config: any, framework: string, backend: stri
   if (config.min_queries > 0 && config.min_duration > 0) {
     // mlperf style min_queries and min_duration number of iterations
     config.runIteration = Number.MAX_VALUE;
-    if (config.min_duration > 0) {
-      end_time = performance.now() + config.min_duration * 1000;
-      console.log(`Running for at least ${config.min_queries} iterations and ${config.min_duration} seconds.`);
-    }
+    end_time = performance.now() + config.min_duration * 1000;
+    console.log(`Running for at least ${config.min_queries} iterations and ${config.min_duration} seconds.`);
   } else {
     console.log(`Running ${config.runIteration} iterations.`);
   }
