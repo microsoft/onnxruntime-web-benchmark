@@ -19,12 +19,14 @@ export class OrtWebBenchmark implements Benchmark {
   #environmentFlags: EnvironmentFlags;
 
   async init(config: any, backend: string, profile: boolean): Promise<void> {
+    console.log(`Initializing session with ${backend} backend(s).`);
     ort.env.logLevel = profile ? 'verbose' : config.logLevel;
 
-    if (config.ortweb.webgl.pack !== undefined) {
+    if (config.ortweb?.webgl?.pack !== undefined) {
       ort.env.webgl.pack = config.ortweb.webgl.pack;
+      console.log(`ort-web Pack mode enabled: ${ort.env.webgl.pack}`);
     }
-    if (config.ortweb.webgl.contextId !== undefined) {
+    if (config.ortweb?.webgl?.contextId !== undefined) {
       ort.env.webgl.contextId = config.ortweb.webgl.contextId;
     }
     if (config.ortweb.wasm.numThreads !== undefined) {
@@ -39,8 +41,6 @@ export class OrtWebBenchmark implements Benchmark {
     if (config.ortweb.wasm.initTimeout !== undefined) {
       ort.env.wasm.initTimeout = config.ortweb.wasm.initTimeout;
     }
-
-    console.log(`ort-web Pack mode enabled: ${ort.env.webgl.pack}`);
 
     this.#modelPath= `${BenchmarkBasePath}/${config.ortweb.path}`;
     this.#session = await ort.InferenceSession.create(this.#modelPath,
