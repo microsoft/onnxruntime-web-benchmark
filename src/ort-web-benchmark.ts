@@ -12,12 +12,18 @@ import * as ort from 'onnxruntime-web';
 import ortFbs = onnxruntime.experimental.fbs;
 import {EnvironmentFlags} from './benchmark-utils';
 
+const typeToFunc: { [key: string]: any } = {
+  "float32": Float32Array,
+  "int32": Int32Array,
+  "BigInt64Array": BigInt64Array
+};
+
 export class OrtWebBenchmark implements Benchmark {
   #modelPath: string;
   #session: ort.InferenceSession;
   #input: ort.SessionHandler.FeedsType;
   #environmentFlags: EnvironmentFlags;
-
+  
   async init(config: any, backend: string, profile: boolean): Promise<void> {
     console.log(`Initializing session with ${backend} backend(s).`);
     ort.env.logLevel = profile ? 'verbose' : config.logLevel;
@@ -41,7 +47,10 @@ export class OrtWebBenchmark implements Benchmark {
     if (config.ortweb.wasm.initTimeout !== undefined) {
       ort.env.wasm.initTimeout = config.ortweb.wasm.initTimeout;
     }
-
+    if (backend == "webnn") {
+      ort.env.wasm.proxy = true;
+      console.log(`ort-web using proxy for webnn`);
+    }
     this.#modelPath= `${BenchmarkBasePath}/${config.ortweb.path}`;
     this.#session = await ort.InferenceSession.create(this.#modelPath,
                                                       {
@@ -65,8 +74,18 @@ export class OrtWebBenchmark implements Benchmark {
     await new Promise(r => setTimeout(r, 3000));
   }
 
+  cloneFeed(): ort.SessionHandler.FeedsType {
+    let feed: ort.SessionHandler.FeedsType = {};
+    for (const [key, value] of Object.entries(this.#input)) {
+        let func = typeToFunc[value.type];
+        feed[key] = new ort.Tensor(func.from(value.data), value.dims);
+    }
+    return feed;
+}
+
   async run(): Promise<ort.InferenceSession.OnnxValueMapType> {
-    const outputData = await this.#session.run(this.#input);
+    const feed: ort.SessionHandler.FeedsType = (ort.env.wasm.proxy) ? this.cloneFeed() : this.#input;
+    const outputData = await this.#session.run(feed);
     return outputData;
   }
 
