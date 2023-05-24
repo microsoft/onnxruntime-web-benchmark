@@ -45,7 +45,7 @@
         "ndarray": "^1.0.18",
         "ndarray-ops": "^1.2.2",
         "onnx-proto": "^8.0.1",
-        "onnxruntime-web": "^1.14.0",
+        "onnxruntime-web": "^1.15.0",
         "typescript": "^4.4.2"
     },
     "optionalDependencies": {
